@@ -5,23 +5,61 @@ let currentProduct = null;
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
-    // Show main website after opening animation
-    setTimeout(() => {
-        document.getElementById('opening-animation').classList.add('hidden');
-        document.getElementById('main-website').classList.remove('hidden');
-        initBackgroundAnimation();
-        loadProducts();
-        updateCartCount();
-    }, 3000);
+    // Ensure main website is visible if opening animation fails
+    try {
+        // Show main website after opening animation
+        setTimeout(() => {
+            try {
+                const openingAnim = document.getElementById('opening-animation');
+                const mainWebsite = document.getElementById('main-website');
+                
+                if (openingAnim) openingAnim.classList.add('hidden');
+                if (mainWebsite) mainWebsite.classList.remove('hidden');
+                
+                initBackgroundAnimation();
+                loadProducts();
+                updateCartCount();
+            } catch (e) {
+                console.error('Error initializing website:', e);
+                // Force show main website if there's an error
+                const mainWebsite = document.getElementById('main-website');
+                const openingAnim = document.getElementById('opening-animation');
+                if (mainWebsite) mainWebsite.classList.remove('hidden');
+                if (openingAnim) openingAnim.classList.add('hidden');
+            }
+        }, 3000);
+    } catch (e) {
+        console.error('Error in DOMContentLoaded:', e);
+        // Fallback: show main website immediately
+        const mainWebsite = document.getElementById('main-website');
+        const openingAnim = document.getElementById('opening-animation');
+        if (mainWebsite) mainWebsite.classList.remove('hidden');
+        if (openingAnim) openingAnim.classList.add('hidden');
+    }
 
-    // Event Listeners
-    document.getElementById('cart-icon').addEventListener('click', showCart);
-    document.getElementById('checkout-btn').addEventListener('click', showCheckout);
-    document.getElementById('checkout-form-element').addEventListener('submit', handleCheckout);
-    document.getElementById('search-btn').addEventListener('click', handleSearch);
-    document.getElementById('search-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleSearch();
-    });
+    // Event Listeners (with error handling)
+    try {
+        const cartIcon = document.getElementById('cart-icon');
+        if (cartIcon) cartIcon.addEventListener('click', showCart);
+        
+        const checkoutBtn = document.getElementById('checkout-btn');
+        if (checkoutBtn) checkoutBtn.addEventListener('click', showCheckout);
+        
+        const checkoutForm = document.getElementById('checkout-form-element');
+        if (checkoutForm) checkoutForm.addEventListener('submit', handleCheckout);
+        
+        const searchBtn = document.getElementById('search-btn');
+        if (searchBtn) searchBtn.addEventListener('click', handleSearch);
+        
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleSearch();
+            });
+        }
+    } catch (e) {
+        console.error('Error setting up event listeners:', e);
+    }
 
     // Payment method change handler
     document.querySelectorAll('input[name="payment-method"]').forEach(radio => {
