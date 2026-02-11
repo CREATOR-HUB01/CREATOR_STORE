@@ -3,319 +3,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CREATOR STORE - Luxury E-Commerce</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>CINEMA PORTAL</title>
+    
     <style>
-        /* Fallback styles if CSS doesn't load */
-        body {
-            background: #0F172A !important;
-            color: #F8FAFC !important;
+        /* --- CORE STYLES --- */
+        :root {
+            --bg-color: #0b0b0b;
+            --text-color: #ffffff;
+            --rec-red: #b70000;
+            /* New Variable for the Glow Effect */
+            --text-glow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.4);
+        }
+
+        body, html {
             margin: 0;
             padding: 0;
+            height: 100%;
+            width: 100%;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        .hidden {
-            display: none !important;
+
+        /* --- UI LAYERS --- */
+        .ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 10;
         }
+
+        /* TOP LEFT: REC / FIRST TAKE */
+        .rec-indicator {
+            position: absolute; top: 40px; left: 40px;
+            display: flex; align-items: center;
+            font-weight: 400; 
+            font-size: 14px; letter-spacing: 1px;
+            transition: all 0.5s ease;
+        }
+
+        .rec-dot {
+            width: 12px; height: 12px;
+            background-color: var(--rec-red);
+            border-radius: 50%; margin-right: 10px;
+            animation: blink 1s infinite;
+            transition: all 0.3s ease;
+        }
+
+        /* CORNER BRACKETS */
+        .bracket {
+            position: absolute; 
+            width: 25px;   
+            height: 25px;  
+            border-color: #ffffff; 
+            border-style: solid; 
+            opacity: 0.9;
+        }
+        
+        .top-left { top: 30px; left: 30px; border-width: 2px 0 0 2px; }
+        .top-right { top: 30px; right: 30px; border-width: 2px 2px 0 0; }
+        .bottom-left { bottom: 30px; left: 30px; border-width: 0 0 2px 2px; }
+        .bottom-right { bottom: 30px; right: 30px; border-width: 0 2px 2px 0; }
+
+        /* --- CENTER LOADING CONTENT --- */
+        .center-stage {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 200px;
+            z-index: 5;
+            transition: opacity 1s ease;
+        }
+
+        /* LOADING LOGO */
+        #loading-logo {
+            max-width: 140px;
+            height: auto;
+            position: absolute;
+            z-index: 2; 
+            opacity: 1;
+            transition: opacity 0.5s ease;
+            animation: breathe 3s infinite ease-in-out;
+        }
+
+        /* LOADING TEXT - WITH GLOW */
+        #cinema-text {
+            font-size: 28px; 
+            font-weight: 300; 
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            position: absolute;
+            z-index: 1;
+            opacity: 0; 
+            color: #fff;
+            white-space: nowrap;
+            transition: opacity 0.5s ease;
+            
+            /* GLOW EFFECT ADDED HERE */
+            text-shadow: var(--text-glow);
+        }
+
+        /* BOTTOM PERCENTAGE */
+        .bottom-status {
+            position: absolute; bottom: 60px; width: 100%;
+            text-align: center; 
+            font-size: 14px; 
+            font-weight: 300; 
+            letter-spacing: 2px; 
+            color: #ffffff; opacity: 0.9;
+            transition: opacity 0.5s ease;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        @keyframes breathe {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(0.95); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* UTILITY CLASSES */
+        .hidden { opacity: 0 !important; }
+        .gone { display: none !important; } 
+        .visible { opacity: 1 !important; }
+        .solid-dot { animation: none !important; opacity: 1 !important; }
+
     </style>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body>\n
-<noscript>
-  <div style="background:#111;color:#fff;padding:1rem;text-align:center;">
-    This site needs JavaScript to work properly — please enable JavaScript for full functionality.
-  </div>
-</noscript>
+<body>
 
-    <!-- Opening Animation -->
-    <div id="opening-animation" class="opening-animation">
-        <div class="logo-container">
-            <div class="logo-text animate-in">CREATOR</div>
-            <div class="logo-text animate-in delay">STORE</div>
+    <div class="ui-layer">
+        <div class="rec-indicator" id="top-left-status">
+            <div class="rec-dot" id="status-dot"></div> 
+            <span id="status-text">REC</span>
         </div>
-        <div class="opening-loader"></div>
+        
+        <div class="bracket top-left"></div><div class="bracket top-right"></div>
+        <div class="bracket bottom-left"></div><div class="bracket bottom-right"></div>
+        
+        <div class="bottom-status" id="percent-display">[10%]</div>
     </div>
 
-    <!-- Main Website -->
-    <div id="main-website" class="main-website">
-        <!-- Header -->
-        <header class="header">
-            <div class="container">
-                <div class="logo-section">
-                    <img src="images/logo.png" alt="CREATOR STORE" class="logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                    <div class="logo-text-header" style="display:none;">CREATOR STORE</div>
-                </div>
-                <nav class="nav-menu">
-                    <a href="#home" class="nav-link active" onclick="navigateTo('home'); return false;">Home</a>
-                    <a href="#categories" class="nav-link" onclick="navigateTo('categories'); return false;">Categories</a>
-                    <a href="#products" class="nav-link" onclick="navigateTo('products'); return false;">Products</a>
-                    <a href="#kits" class="nav-link" onclick="navigateTo('kits'); return false;">Kits</a>
-                    <a href="#about" class="nav-link" onclick="navigateTo('about'); return false;">About</a>
-                </nav>
-                <div class="header-actions">
-                    <div class="search-container">
-                        <input type="text" id="search-input" placeholder="Search products...">
-                        <button id="search-btn">🔍</button>
-                    </div>
-                    <div class="cart-icon" id="cart-icon">
-                        🛒 <span class="cart-count" id="cart-count">0</span>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <!-- Background Animation -->
-        <div class="bg-animation">
-            <canvas id="animation-canvas"></canvas>
-        </div>
-
-        <!-- Home Section -->
-        <section id="home" class="section active">
-            <div class="container">
-                <!-- Categories -->
-                <div class="categories-section" id="categories">
-                    <h2 class="section-title">Categories</h2>
-                    <div class="categories-grid" id="categories-grid">
-                        <!-- Categories will be loaded here -->
-                    </div>
-                </div>
-
-                <!-- Products Section -->
-                <div class="products-section" id="products">
-                    <h2 class="section-title">Featured Products</h2>
-                    <div class="products-grid" id="products-grid">
-                        <!-- Products will be loaded here -->
-                    </div>
-                </div>
-
-                <!-- Kits Section -->
-                <div class="kits-section" id="kits">
-                    <h2 class="section-title">Product Kits</h2>
-                    <div class="products-grid" id="kits-grid">
-                        <!-- Kits will be loaded here -->
-                    </div>
-                </div>
-
-                <!-- About Section - Moved to Bottom -->
-                <div class="about-section" id="about">
-                    <h2 class="section-title">About CREATOR STORE</h2>
-                    <div class="policies-list">
-                        <div class="policy-item" onclick="togglePolicy(this)">
-                            <div class="policy-header">
-                                <h3>Shipping Policy</h3>
-                                <span class="policy-toggle">+</span>
-                            </div>
-                            <div class="policy-content">
-                                <p>We offer free shipping on orders above ₹1500 for COD. For orders below ₹1500, shipping charges of ₹50 apply for COD. Online payment orders have a shipping charge of ₹80 regardless of order value. Delivery time: 3-7 business days across India.</p>
-                            </div>
-                        </div>
-                        <div class="policy-item" onclick="togglePolicy(this)">
-                            <div class="policy-header">
-                                <h3>Return Policy</h3>
-                                <span class="policy-toggle">+</span>
-                            </div>
-                            <div class="policy-content">
-                                <p>We accept returns within 7 days of delivery. Items must be unused, in original packaging with all tags attached. Refunds will be processed within 5-7 business days.</p>
-                            </div>
-                        </div>
-                        <div class="policy-item" onclick="togglePolicy(this)">
-                            <div class="policy-header">
-                                <h3>Refund Policy</h3>
-                                <span class="policy-toggle">+</span>
-                            </div>
-                            <div class="policy-content">
-                                <p>Refunds are processed to the original payment method within 5-7 business days after return approval. For COD orders, refunds will be processed via bank transfer.</p>
-                            </div>
-                        </div>
-                        <div class="policy-item" onclick="togglePolicy(this)">
-                            <div class="policy-header">
-                                <h3>Privacy Policy</h3>
-                                <span class="policy-toggle">+</span>
-                            </div>
-                            <div class="policy-content">
-                                <p>We respect your privacy. Your personal information is securely stored and never shared with third parties without your consent.</p>
-                            </div>
-                        </div>
-                        <div class="policy-item" onclick="togglePolicy(this)">
-                            <div class="policy-header">
-                                <h3>Terms of Service</h3>
-                                <span class="policy-toggle">+</span>
-                            </div>
-                            <div class="policy-content">
-                                <p>By using our services, you agree to our terms. We reserve the right to refuse service, cancel orders, or change our terms at any time.</p>
-                            </div>
-                        </div>
-                        <div class="policy-item" onclick="togglePolicy(this)">
-                            <div class="policy-header">
-                                <h3>Payment Policy</h3>
-                                <span class="policy-toggle">+</span>
-                            </div>
-                            <div class="policy-content">
-                                <p>We accept Cash on Delivery (COD) and Online payments. COD orders above ₹1500 have free shipping, below ₹1500 have ₹50 shipping. Online payments have ₹80 shipping regardless of order value.</p>
-                            </div>
-                        </div>
-                        <div class="policy-item" onclick="togglePolicy(this)">
-                            <div class="policy-header">
-                                <h3>Warranty Policy</h3>
-                                <span class="policy-toggle">+</span>
-                            </div>
-                            <div class="policy-content">
-                                <p>All products come with manufacturer warranty. Warranty period varies by product category. Please check product details for specific warranty information.</p>
-                            </div>
-                        </div>
-                        <div class="policy-item" onclick="togglePolicy(this)">
-                            <div class="policy-header">
-                                <h3>Cancellation Policy</h3>
-                                <span class="policy-toggle">+</span>
-                            </div>
-                            <div class="policy-content">
-                                <p>Orders can be cancelled within 24 hours of placement. After dispatch, cancellation may not be possible. Refunds for cancelled orders will be processed within 5-7 business days.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Product Detail Section (hidden by default) -->
-        <section id="product-detail" class="section hidden">
-            <div class="container">
-                <button class="back-btn" onclick="showHome()">← Back to Home</button>
-                <div id="product-detail-content">
-                    <!-- Product detail will be loaded here -->
-                </div>
-            </div>
-        </section>
-
-        <!-- Cart Section -->
-        <section id="cart" class="section hidden">
-            <div class="container">
-                <h2 class="section-title">Your Cart</h2>
-                <div id="cart-items">
-                    <!-- Cart items will be loaded here -->
-                </div>
-                <div class="cart-summary">
-                    <div class="cart-total">
-                        <strong>Subtotal: ₹<span id="cart-subtotal">0</span></strong>
-                    </div>
-                    <button class="checkout-btn" id="checkout-btn">Proceed to Checkout</button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Checkout Section -->
-        <section id="checkout" class="section hidden">
-            <div class="container">
-                <h2 class="section-title">Checkout</h2>
-                <div class="checkout-container">
-                    <div class="order-summary">
-                        <h3>Order Summary</h3>
-                        <div id="checkout-items"></div>
-                        <div class="checkout-totals">
-                            <div class="total-row">
-                                <span>Subtotal:</span>
-                                <span>₹<span id="checkout-subtotal">0</span></span>
-                            </div>
-                            <div class="total-row">
-                                <span>Shipping:</span>
-                                <span id="shipping-cost">Calculated at checkout</span>
-                            </div>
-                            <div class="total-row final-total">
-                                <span>Total:</span>
-                                <span>₹<span id="checkout-total">0</span></span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="checkout-form">
-                        <h3>Delivery Information</h3>
-                        <form id="checkout-form-element">
-                            <div class="form-group">
-                                <label>Full Name *</label>
-                                <input type="text" id="customer-name" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Phone Number *</label>
-                                <input type="tel" id="customer-phone" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Email *</label>
-                                <input type="email" id="customer-email" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Address *</label>
-                                <textarea id="customer-address" rows="3" required></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Payment Method *</label>
-                                <div class="payment-options">
-                                    <label class="payment-option">
-                                        <input type="radio" name="payment-method" value="cod" required>
-                                        <span>Cash on Delivery (COD)</span>
-                                    </label>
-                                    <label class="payment-option">
-                                        <input type="radio" name="payment-method" value="online" required>
-                                        <span>Online Payment</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div id="online-payment-section" class="hidden">
-                                <div class="qr-code-section">
-                                    <h4>Scan QR Code to Pay</h4>
-                                    <div class="qr-code-container">
-                                        <img src="images/qr-code.png" alt="Payment QR Code" id="payment-qr" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect fill=\'%23fff\' width=\'200\' height=\'200\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' font-family=\'Arial\' font-size=\'14\'%3EQR Code%3C/text%3E%3C/svg%3E';">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Upload Payment Screenshot *</label>
-                                        <input type="file" id="payment-screenshot" accept="image/*" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>UTR Number *</label>
-                                        <input type="text" id="utr-number" placeholder="Enter UTR Number" required>
-                                    </div>
-                                </div>
-                            </div>
-                            <button type="submit" class="proceed-btn">Proceed</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Success Section -->
-        <section id="success" class="section hidden">
-            <div class="container">
-                <div class="success-animation">
-                    <div class="success-icon" id="purchase-animation">✓</div>
-                    <h2>Order Placed Successfully!</h2>
-                    <p id="success-message">We are checking your payment and order details. Once verified, we will update you soon.</p>
-                </div>
-            </div>
-        </section>
+    <div class="center-stage" id="loading-stage">
+        <img src="images/web-logo.png" alt="Logo" id="loading-logo">
+        <h1 id="cinema-text">CINEMAS</h1>
     </div>
 
-    <!-- Add to Cart Animation -->
-    <div id="add-to-cart-animation" class="add-to-cart-animation hidden"></div>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const loadingLogo = document.getElementById('loading-logo');
+            const cinemaText = document.getElementById('cinema-text');
+            const percentDisplay = document.getElementById('percent-display');
+            const loadingStage = document.getElementById('loading-stage');
+            const statusText = document.getElementById('status-text');
+            const statusDot = document.getElementById('status-dot');
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="app.js"></script>
+            // Config
+            let currentPercent = 10;
+            const finalPercent = 100;
+            const languages = [
+                "CINEMAS", "ಚಲನಚಿತ್ರ", "सिनेमा", "సినిమా", 
+                "சினிமா", "സിനിമ","সিনেমা", "سینما", 
+                "સિનેમા", "चित्रपट", "ਸਿਨੇਮਾ", "চলচ্চিত্ৰ"
+            ];
 
-<script>
-/* Safety: if a runtime error prevents the app from revealing the site,
-   ensure the main container becomes visible after a short timeout. */
-window.addEventListener('DOMContentLoaded', function(){
-  setTimeout(function(){
-    var main = document.getElementById('main-website') || document.querySelector('.main-website');
-    if(main){
-      main.style.visibility = main.style.visibility || 'visible';
-      main.style.opacity = main.style.opacity || '1';
-      // remove 'hidden' classname if present
-      main.classList.remove && main.classList.remove('hidden');
-    }
-  }, 1200); // keep short so animation still shown if app.js runs
-});
-</script>
+            // 1. Logo Display
+            setTimeout(() => {
+                transitionLogoToText();
+            }, 1000);
 
+            function transitionLogoToText() {
+                loadingLogo.style.animation = 'none';
+                loadingLogo.classList.add('hidden');
+
+                setTimeout(() => {
+                    loadingLogo.classList.add('gone'); 
+                    cinemaText.classList.add('visible');
+                    startLoadingSequence();
+                }, 150);
+            }
+
+            // 2. Loading Loop
+            function startLoadingSequence() {
+                const duration = 3500;
+                const interval = 50;
+                const step = (finalPercent - currentPercent) / (duration / interval);
+
+                const timer = setInterval(() => {
+                    currentPercent += step;
+
+                    if (currentPercent >= finalPercent) {
+                        currentPercent = finalPercent;
+                        clearInterval(timer);
+                        
+                        percentDisplay.textContent = `[${Math.floor(currentPercent)}%]`;
+                        cinemaText.textContent = "CINEMAS";
+
+                        // Trigger Final State
+                        setTimeout(revealEmptyState, 500);
+                    } else {
+                        percentDisplay.textContent = `[${Math.floor(currentPercent)}%]`;
+                        syncLanguage(currentPercent);
+                    }
+                }, interval);
+            }
+
+            function syncLanguage(percent) {
+                const progress = (percent - 10) / 90;
+                let index = Math.floor(progress * languages.length);
+                if (index >= languages.length) index = languages.length - 1;
+                cinemaText.textContent = languages[index];
+            }
+
+            // 3. Final Empty State
+            function revealEmptyState() {
+                loadingStage.classList.add('hidden'); 
+                percentDisplay.classList.add('hidden'); 
+
+                statusText.textContent = "FIRST TAKE";
+                statusDot.classList.add('solid-dot');
+            }
+        });
+    </script>
 </body>
 </html>
