@@ -22,9 +22,9 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            /* FIX: Allow body to scroll normally */
+            /* SCROLL CONFIG: Native body scroll for best performance */
             overflow-x: hidden;
-            overflow-y: hidden; /* Locked initially for loading */
+            overflow-y: hidden; /* Locked initially during loading */
             scroll-behavior: smooth;
         }
 
@@ -36,7 +36,7 @@
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: 1;
-            /* FIX: Allow clicks to pass through background container */
+            /* EVENTS: None ensures clicks/scrolls pass to the body */
             pointer-events: none; 
         }
 
@@ -50,35 +50,32 @@
 
         .scene-visible { opacity: 1 !important; }
 
-        /* --- IFRAME FIXES (CRITICAL) --- */
+        /* --- IFRAME CONFIG --- */
         .spline-scene iframe {
             position: absolute;
             top: 0; left: 0;
             width: 100%;
-            height: calc(100% + 100px); /* Crop logo */
+            /* CROP: Taller height pushes the logo off-screen */
+            height: calc(100% + 100px); 
             border: none;
-            
-            /* CRITICAL SCROLL FIX: 
-               We disable pointer events on the iframe so the mouse 
-               wheel scrolls the PAGE instead of zooming the 3D scene. */
+            /* CRITICAL: Disables mouse interaction with iframe to guarantee smooth page scrolling */
             pointer-events: none; 
         }
 
-        /* --- CONTENT LAYER (SCROLLABLE) --- */
+        /* --- CONTENT LAYER --- */
         .scroll-container {
             position: relative;
             z-index: 5; 
             width: 100%;
             display: none; /* Hidden until loading finishes */
-            /* Allow mouse to pass through empty areas */
-            pointer-events: none; 
+            pointer-events: none; /* Let mouse pass through to scroll body */
         }
 
         .section {
             position: relative;
             width: 100%;
-            height: 100vh;
-            scroll-snap-align: start; /* Snap effect */
+            height: 100vh; /* Full viewport height */
+            /* REMOVED SCROLL SNAP to fix "delay/stuck" feeling */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -111,6 +108,7 @@
             width: 12px; height: 12px;
             background-color: var(--rec-red);
             border-radius: 50%; margin-right: 10px;
+            /* ANIMATION: Always blinks now */
             animation: blink 1s infinite;
             transition: all 0.3s ease;
         }
@@ -128,9 +126,7 @@
             position: absolute; font-weight: 500; font-size: 14px;
             letter-spacing: 1px; text-transform: uppercase;
             opacity: 0; transition: opacity 1s ease 0.5s; 
-            
-            /* Allow clicking Menu items */
-            pointer-events: auto; 
+            pointer-events: auto; /* Buttons clickable */
             cursor: pointer;
         }
         .top-right-menu { top: 40px; right: 40px; }
@@ -175,7 +171,6 @@
         .hidden { opacity: 0 !important; }
         .gone { display: none !important; } 
         .visible { opacity: 1 !important; }
-        .solid-dot { animation: none !important; opacity: 1 !important; }
 
     </style>
 </head>
@@ -223,12 +218,14 @@
             const loadingStage = document.getElementById('loading-stage');
             
             const statusText = document.getElementById('status-text');
-            const statusDot = document.getElementById('status-dot');
+            // statusDot is animated via CSS 'rec-dot' class automatically
             const homeUiElements = document.querySelectorAll('.home-ui');
             const scrollContainer = document.getElementById('main-scroll');
             
             const bgHome = document.getElementById('bg-home');
             const bgBrain = document.getElementById('bg-brain');
+            const sectionHome = document.getElementById('section-home');
+            const sectionBrain = document.getElementById('section-brain');
 
             // Config
             let currentPercent = 10;
@@ -277,10 +274,14 @@
             }
 
             function revealHomeState() {
+                // Fade out Loading
                 loadingStage.classList.add('hidden'); 
                 percentDisplay.classList.add('hidden'); 
+                
+                // Update UI (Text changes, DOT KEEPS BLINKING)
                 statusText.textContent = "FIRST TAKE";
-                statusDot.classList.add('solid-dot');
+                // Note: We do NOT add 'solid-dot' class, so animation continues
+                
                 homeUiElements.forEach(el => el.classList.add('visible'));
 
                 // Enable Window Scroll and Show Content
@@ -295,7 +296,7 @@
             // --- SCROLL LOGIC ---
             function initScrollObserver() {
                 const options = {
-                    root: null, // viewport
+                    root: null, // Viewport
                     threshold: 0.5 
                 };
 
@@ -314,8 +315,8 @@
                     });
                 }, options);
 
-                observer.observe(document.getElementById('section-home'));
-                observer.observe(document.getElementById('section-brain'));
+                observer.observe(sectionHome);
+                observer.observe(sectionBrain);
             }
         });
     </script>
