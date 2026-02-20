@@ -11,7 +11,6 @@
             --bg-color: #0b0b0b;
             --text-color: #ffffff;
             --rec-red: #b70000;
-            /* New Variable for the Glow Effect */
             --text-glow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.4);
         }
 
@@ -23,29 +22,91 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            /* FIX: Allow body to scroll normally */
+            overflow-x: hidden;
+            overflow-y: hidden; /* Locked initially for loading */
+            scroll-behavior: smooth;
         }
 
-        /* --- UI LAYERS --- */
-        .ui-layer {
+        /* Hide Scrollbar */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+
+        /* --- BACKGROUND LAYER --- */
+        .background-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+            /* FIX: Allow clicks to pass through background container */
+            pointer-events: none; 
+        }
+
+        .spline-scene {
             position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            overflow: hidden; 
+        }
+
+        .scene-visible { opacity: 1 !important; }
+
+        /* --- IFRAME FIXES (CRITICAL) --- */
+        .spline-scene iframe {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: calc(100% + 100px); /* Crop logo */
+            border: none;
+            
+            /* CRITICAL SCROLL FIX: 
+               We disable pointer events on the iframe so the mouse 
+               wheel scrolls the PAGE instead of zooming the 3D scene. */
+            pointer-events: none; 
+        }
+
+        /* --- CONTENT LAYER (SCROLLABLE) --- */
+        .scroll-container {
+            position: relative;
+            z-index: 5; 
+            width: 100%;
+            display: none; /* Hidden until loading finishes */
+            /* Allow mouse to pass through empty areas */
+            pointer-events: none; 
+        }
+
+        .section {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            scroll-snap-align: start; /* Snap effect */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- VIGNETTE --- */
+        .vignette-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 3; 
+            background: radial-gradient(circle at center, transparent 40%, var(--bg-color) 100%);
+            pointer-events: none; 
+        }
+
+        /* --- UI OVERLAY --- */
+        .ui-layer {
+            position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
             z-index: 10;
         }
 
-        /* TOP LEFT: REC / FIRST TAKE */
         .rec-indicator {
             position: absolute; top: 40px; left: 40px;
             display: flex; align-items: center;
-            font-weight: 400; 
-            font-size: 14px; letter-spacing: 1px;
+            font-weight: 400; font-size: 14px; letter-spacing: 1px;
             transition: all 0.5s ease;
         }
-
         .rec-dot {
             width: 12px; height: 12px;
             background-color: var(--rec-red);
@@ -54,73 +115,56 @@
             transition: all 0.3s ease;
         }
 
-        /* CORNER BRACKETS */
         .bracket {
-            position: absolute; 
-            width: 25px;   
-            height: 25px;  
-            border-color: #ffffff; 
-            border-style: solid; 
-            opacity: 0.9;
+            position: absolute; width: 25px; height: 25px;
+            border-color: #ffffff; border-style: solid; opacity: 0.9;
         }
-        
         .top-left { top: 30px; left: 30px; border-width: 2px 0 0 2px; }
         .top-right { top: 30px; right: 30px; border-width: 2px 2px 0 0; }
         .bottom-left { bottom: 30px; left: 30px; border-width: 0 0 2px 2px; }
         .bottom-right { bottom: 30px; right: 30px; border-width: 0 2px 2px 0; }
 
-        /* --- CENTER LOADING CONTENT --- */
+        .home-ui {
+            position: absolute; font-weight: 500; font-size: 14px;
+            letter-spacing: 1px; text-transform: uppercase;
+            opacity: 0; transition: opacity 1s ease 0.5s; 
+            
+            /* Allow clicking Menu items */
+            pointer-events: auto; 
+            cursor: pointer;
+        }
+        .top-right-menu { top: 40px; right: 40px; }
+        .bottom-left-prologue { bottom: 40px; left: 40px; }
+        .bottom-right-home { bottom: 40px; right: 40px; z-index: 20; }
+        .bottom-status {
+            position: absolute; bottom: 60px; width: 100%;
+            text-align: center; font-size: 14px; font-weight: 300;
+            letter-spacing: 2px; color: #ffffff; opacity: 0.9;
+            transition: opacity 0.5s ease;
+        }
+
+        /* --- LOADING CENTER --- */
         .center-stage {
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            height: 200px;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
             z-index: 5;
             transition: opacity 1s ease;
+            pointer-events: none;
         }
-
-        /* LOADING LOGO */
         #loading-logo {
-            max-width: 140px;
-            height: auto;
-            position: absolute;
-            z-index: 2; 
-            opacity: 1;
-            transition: opacity 0.5s ease;
+            max-width: 140px; height: auto; position: absolute; z-index: 2;
+            opacity: 1; transition: opacity 0.5s ease;
             animation: breathe 3s infinite ease-in-out;
         }
-
-        /* LOADING TEXT - WITH GLOW */
         #cinema-text {
-            font-size: 28px; 
-            font-weight: 300; 
-            letter-spacing: 8px;
-            text-transform: uppercase;
-            position: absolute;
-            z-index: 1;
-            opacity: 0; 
-            color: #fff;
-            white-space: nowrap;
+            font-size: 28px; font-weight: 300; letter-spacing: 8px;
+            text-transform: uppercase; position: absolute; z-index: 1;
+            opacity: 0; color: #fff; white-space: nowrap;
             transition: opacity 0.5s ease;
-            
-            /* GLOW EFFECT ADDED HERE */
             text-shadow: var(--text-glow);
         }
 
-        /* BOTTOM PERCENTAGE */
-        .bottom-status {
-            position: absolute; bottom: 60px; width: 100%;
-            text-align: center; 
-            font-size: 14px; 
-            font-weight: 300; 
-            letter-spacing: 2px; 
-            color: #ffffff; opacity: 0.9;
-            transition: opacity 0.5s ease;
-        }
-
-        /* --- ANIMATIONS --- */
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
         @keyframes breathe {
             0% { transform: scale(1); opacity: 1; }
@@ -128,7 +172,6 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
-        /* UTILITY CLASSES */
         .hidden { opacity: 0 !important; }
         .gone { display: none !important; } 
         .visible { opacity: 1 !important; }
@@ -138,16 +181,32 @@
 </head>
 <body>
 
+    <div class="background-container">
+        <div class="spline-scene" id="bg-home">
+            <iframe src='https://my.spline.design/particles-UzwMHumM7y7oqHcw4wrLKy22/' width='100%' height='100%'></iframe>
+        </div>
+        <div class="spline-scene" id="bg-brain">
+            <iframe src='https://my.spline.design/particleaibrain-kZ5ceyhZH4ZotxGyMHSsqbCb/' width='100%' height='100%'></iframe>
+        </div>
+    </div>
+
+    <div class="vignette-layer"></div>
+
     <div class="ui-layer">
         <div class="rec-indicator" id="top-left-status">
-            <div class="rec-dot" id="status-dot"></div> 
-            <span id="status-text">REC</span>
+            <div class="rec-dot" id="status-dot"></div> <span id="status-text">REC</span>
         </div>
-        
+        <div class="home-ui top-right-menu">MENU</div>
+        <div class="home-ui bottom-left-prologue">PROLOGUE: FRAMING</div>
+        <div class="home-ui bottom-right-home">HOME</div>
         <div class="bracket top-left"></div><div class="bracket top-right"></div>
         <div class="bracket bottom-left"></div><div class="bracket bottom-right"></div>
-        
         <div class="bottom-status" id="percent-display">[10%]</div>
+    </div>
+
+    <div class="scroll-container" id="main-scroll">
+        <div class="section" id="section-home"></div>
+        <div class="section" id="section-brain"></div>
     </div>
 
     <div class="center-stage" id="loading-stage">
@@ -157,12 +216,19 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+            // Elements
             const loadingLogo = document.getElementById('loading-logo');
             const cinemaText = document.getElementById('cinema-text');
             const percentDisplay = document.getElementById('percent-display');
             const loadingStage = document.getElementById('loading-stage');
+            
             const statusText = document.getElementById('status-text');
             const statusDot = document.getElementById('status-dot');
+            const homeUiElements = document.querySelectorAll('.home-ui');
+            const scrollContainer = document.getElementById('main-scroll');
+            
+            const bgHome = document.getElementById('bg-home');
+            const bgBrain = document.getElementById('bg-brain');
 
             // Config
             let currentPercent = 10;
@@ -173,40 +239,29 @@
                 "સિનેમા", "चित्रपट", "ਸਿਨੇਮਾ", "চলচ্চিত্ৰ"
             ];
 
-            // 1. Logo Display
+            // --- LOADING SEQUENCE ---
             setTimeout(() => {
-                transitionLogoToText();
-            }, 1000);
-
-            function transitionLogoToText() {
                 loadingLogo.style.animation = 'none';
                 loadingLogo.classList.add('hidden');
-
                 setTimeout(() => {
                     loadingLogo.classList.add('gone'); 
                     cinemaText.classList.add('visible');
                     startLoadingSequence();
                 }, 150);
-            }
+            }, 1000);
 
-            // 2. Loading Loop
             function startLoadingSequence() {
                 const duration = 3500;
                 const interval = 50;
                 const step = (finalPercent - currentPercent) / (duration / interval);
-
                 const timer = setInterval(() => {
                     currentPercent += step;
-
                     if (currentPercent >= finalPercent) {
                         currentPercent = finalPercent;
                         clearInterval(timer);
-                        
                         percentDisplay.textContent = `[${Math.floor(currentPercent)}%]`;
                         cinemaText.textContent = "CINEMAS";
-
-                        // Trigger Final State
-                        setTimeout(revealEmptyState, 500);
+                        setTimeout(revealHomeState, 500);
                     } else {
                         percentDisplay.textContent = `[${Math.floor(currentPercent)}%]`;
                         syncLanguage(currentPercent);
@@ -221,13 +276,46 @@
                 cinemaText.textContent = languages[index];
             }
 
-            // 3. Final Empty State
-            function revealEmptyState() {
+            function revealHomeState() {
                 loadingStage.classList.add('hidden'); 
                 percentDisplay.classList.add('hidden'); 
-
                 statusText.textContent = "FIRST TAKE";
                 statusDot.classList.add('solid-dot');
+                homeUiElements.forEach(el => el.classList.add('visible'));
+
+                // Enable Window Scroll and Show Content
+                document.body.style.overflowY = 'auto'; 
+                scrollContainer.style.display = 'block';
+                bgHome.classList.add('scene-visible');
+                
+                // Init Scroll Observer
+                initScrollObserver();
+            }
+
+            // --- SCROLL LOGIC ---
+            function initScrollObserver() {
+                const options = {
+                    root: null, // viewport
+                    threshold: 0.5 
+                };
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            if (entry.target.id === 'section-home') {
+                                bgHome.classList.add('scene-visible');
+                                bgBrain.classList.remove('scene-visible');
+                            } 
+                            else if (entry.target.id === 'section-brain') {
+                                bgHome.classList.remove('scene-visible');
+                                bgBrain.classList.add('scene-visible');
+                            }
+                        }
+                    });
+                }, options);
+
+                observer.observe(document.getElementById('section-home'));
+                observer.observe(document.getElementById('section-brain'));
             }
         });
     </script>
